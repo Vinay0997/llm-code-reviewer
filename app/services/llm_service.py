@@ -25,7 +25,7 @@ Code:
 ```{language}
 {code}
 ```
-
+ "{{summary}}": "Brief overview of code quality",
 Respond ONLY with a valid JSON object matching this schema:
 {
   "summary": "Brief overview of code quality",
