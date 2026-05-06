@@ -18,28 +18,25 @@ def get_llm():
 
 REVIEW_PROMPT = """
 You are an expert code reviewer. Analyze the following {language} code and return a detailed review.
-
 Context: {context}
-
 Code:
 ```{language}
 {code}
 ```
- "{{summary}}": "Brief overview of code quality",
 Respond ONLY with a valid JSON object matching this schema:
 {
-  "summary": "Brief overview of code quality",
-  "issues": [
+  "{{summary}}": "Brief overview of code quality",
+  "{{issues}}": [
     {
-      "type": "bug|security|style|optimization",
-      "severity": "low|medium|high",
-      "line": "line number or range if known",
-      "description": "what the issue is",
-      "suggestion": "how to fix it"
+      "{{type}}": "bug|security|style|optimization",
+      "{{severity}}": "low|medium|high",
+      "{{line}}": "line number or range if known",
+      "{{description}}": "what the issue is",
+      "{{suggestion}}": "how to fix it"
     }
   ],
-  "score": <integer 0-100>,
-  "improved_code": "optional refactored version"
+  "{{score}}": <integer 0-100>,
+  "{{improved_code}}": "optional refactored version"
 }
 """
 
@@ -57,7 +54,7 @@ async def review_code(code: str, language: str, context: str) -> CodeReviewRespo
     raw = result.content.strip()
     if raw.startswith("```"):
         raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
+    if raw.startswith("json"):
+        raw = raw[4:]
     data = json.loads(raw)
     return CodeReviewResponse(**data)
