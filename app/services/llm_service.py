@@ -1,15 +1,20 @@
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
-from langchain.output_parsers import PydanticOutputParser
 from app.models.schemas import CodeReviewResponse
 from app.core.config import settings
 import json
 
-llm = ChatOpenAI(
-    model="gpt-4o",
-    api_key=settings.OPENAI_API_KEY,
-    temperature=0.2
-)
+_persistent_llm = None
+
+def get_llm():
+    global _persistent_llm
+    if _persistent_llm is None:
+        _persistent_llm = ChatOpenAI(
+            model="gpt-4o",
+            api_key=settings.OPENAI_API_KEY,
+            temperature=0.2
+        )
+    return _persistent_llm
 
 REVIEW_PROMPT = """
 You are an expert code reviewer. Analyze the following {language} code and return a detailed review.
@@ -41,7 +46,9 @@ Respond ONLY with a valid JSON object matching this schema:
 prompt = ChatPromptTemplate.from_template(REVIEW_PROMPT)
 
 async def review_code(code: str, language: str, context: str) -> CodeReviewResponse:
-    chain = prompt | llm
+    if not settings.OPENAI_API_KEY or settings.OPENAI_API_KEY == "":
+        raise ValueError("OPENAI_API_KEY is not set. Please set it in your .env file.")
+    chain = prompt | get_llm()
     result = await chain.ainvoke({
         "code": code,
         "language": language,
