@@ -1,4 +1,4 @@
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import ChatPromptTemplate
 from app.models.schemas import CodeReviewResponse
 from app.core.config import settings
@@ -9,10 +9,11 @@ _persistent_llm = None
 def get_llm():
     global _persistent_llm
     if _persistent_llm is None:
-        _persistent_llm = ChatOpenAI(
-            model="gpt-4o",
-            api_key=settings.OPENAI_API_KEY,
-            temperature=0.2
+        _persistent_llm = ChatGoogleGenerativeAI(
+            model="models/gemini-1.5-flash",
+            api_key=settings.GOOGLE_API_KEY,
+            temperature=0.2,
+            convert_system_message_to_human=True
         )
     return _persistent_llm
 
@@ -43,15 +44,15 @@ Respond ONLY with a valid JSON object matching this schema:
 prompt = ChatPromptTemplate.from_template(REVIEW_PROMPT)
 
 async def review_code(code: str, language: str, context: str) -> CodeReviewResponse:
-    if not settings.OPENAI_API_KEY or settings.OPENAI_API_KEY == "":
-        raise ValueError("OPENAI_API_KEY is not set. Please set it in your .env file.")
+    if not settings.GOOGLE_API_KEY or settings.GOOGLE_API_KEY == "":
+        raise ValueError("GOOGLE_API_KEY is not set. Please set it in your .env file.")
     chain = prompt | get_llm()
     result = await chain.ainvoke({
         "code": code,
         "language": language,
         "context": context or "No additional context provided."
     })
-    raw = result.content.strip()
+    raw = result.text.strip()
     if raw.startswith("```"):
         raw = raw.split("```")[1]
     if raw.startswith("json"):
