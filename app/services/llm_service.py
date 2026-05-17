@@ -19,26 +19,29 @@ def get_llm():
 
 REVIEW_PROMPT = """
 You are an expert code reviewer. Analyze the following {language} code and return a detailed review.
+
 Context: {context}
+
 Code:
 ```{language}
 {code}
 ```
-Respond ONLY with a valid JSON object matching this schema:
-{
-  "{{summary}}": "Brief overview of code quality",
-  "{{issues}}": [
-    {
-      "{{type}}": "bug|security|style|optimization",
-      "{{severity}}": "low|medium|high",
-      "{{line}}": "line number or range if known",
-      "{{description}}": "what the issue is",
-      "{{suggestion}}": "how to fix it"
-    }
+
+Respond ONLY with a valid JSON object in this exact format:
+{{
+  "summary": "Brief overview of code quality",
+  "issues": [
+    {{
+      "type": "bug|security|style|optimization",
+      "severity": "low|medium|high",
+      "line": "line number or range if known",
+      "description": "what the issue is",
+      "suggestion": "how to fix it"
+    }}
   ],
-  "{{score}}": <integer 0-100>,
-  "{{improved_code}}": "optional refactored version"
-}
+  "score": 0,
+  "improved_code": "optional refactored version"
+}}
 """
 
 prompt = ChatPromptTemplate.from_template(REVIEW_PROMPT)
